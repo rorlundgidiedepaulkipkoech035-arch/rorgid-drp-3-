@@ -1,0 +1,84 @@
+# Full stack: PostgreSQL + Redis + web + engine + Celery worker + Celery beat.
+#   cp .env.example .env     (fill it in; never commit it)
+#   docker compose up -d --build
+x-app: &app
+  build: .
+  env_file: .env
+  environment:
+    DATABASE_URL: postgresql://rorgid:${POSTGRES_PASSWORD}@postgres:5432/rorgid
+    REDIS_URL: redis://redis:6379/0
+    UPLOAD_DIR: /data/uploads
+    ARTIFACT_DIR: /data/artifacts
+  volumes:
+    - rorgid-data:/data
+  restart: unless-stopped
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: rorgid
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: rorgid
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rorgid -d rorgid"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  migrate:                          # creates the tables once, before anything else starts
+    <<: *app
+    command: ["python", "-c", "from src import db; db.init_db(); print('database ready')"]
+    restart: "no"
+    depends_on:
+      postgres: {condition: service_healthy}
+
+  web:
+    <<: *app
+    command: ["sh", "-c", "python bootstrap.py && python serve.py"]
+    ports:
+      - "8000:8000"
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+
+  engine:                           # certificate stream -> detection -> Celery queue
+    <<: *app
+    command: ["python", "main.py"]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+
+  worker:                           # Playwright evidence collection and report emails
+    <<: *app
+    command: ["sh", "-c", "celery -A src.celery_app.celery worker --loglevel=info --concurrency=${WORKER_CONCURRENCY:-3}"]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+
+  beat:                             # the clock: re-queues approved reports that were missed
+    <<: *app
+    command: ["sh", "-c", "celery -A src.celery_app.celery beat --loglevel=info --schedule /tmp/celerybeat-schedule"]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+
+volumes:
+  pgdata: {}
+  redisdata: {}
+  rorgid-data: {}

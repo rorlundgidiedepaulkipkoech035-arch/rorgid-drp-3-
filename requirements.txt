@@ -1,0 +1,11 @@
+certstream>=1.0
+flask>=3.0
+waitress>=3.0
+playwright>=1.45
+tldextract>=5.0
+sqlalchemy>=2.0
+psycopg2-binary>=2.9
+celery>=5.3
+redis>=5.0
+opencv-python-headless>=4.9
+numpy>=1.26

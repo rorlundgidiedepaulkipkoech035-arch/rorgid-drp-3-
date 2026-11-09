@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Dashboard{% endblock %} · RORGID Cyber Security</title>
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='img/mark.png') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head><body class="{{ 'app' if user else 'auth' }}">
+{% from "_icons.html" import icon %}
+{% if user %}{% set ep = request.endpoint %}
+<div class="shell">
+<aside class="sidebar">
+<a class="logo" href="/"><img src="{{ url_for('static', filename='img/mark.png') }}" alt=""><span><b>RORGID</b><small>Cyber Security</small></span></a>
+<nav>{% if user.role=='platform_admin' %}
+<a class="{{ 'on' if ep=='admin' }}" href="{{ url_for('admin') }}">{{ icon('building') }}Companies</a>
+{% else %}
+<a class="{{ 'on' if ep=='dashboard' }}" href="{{ url_for('dashboard') }}">{{ icon('grid') }}Overview</a>
+<a class="{{ 'on' if ep in ('findings_list','finding') }}" href="{{ url_for('findings_list') }}">{{ icon('list') }}Findings</a>
+<a class="{{ 'on' if ep=='verification' }}" href="{{ url_for('verification') }}">{{ icon('shield') }}Verification</a>
+<a class="{{ 'on' if ep=='assets_page' }}" href="{{ url_for('assets_page') }}">{{ icon('image') }}Protected assets</a>
+{% if user.role=='company_admin' %}<a class="{{ 'on' if ep=='company' }}" href="{{ url_for('company') }}">{{ icon('building') }}Company</a>{% endif %}
+{% endif %}
+<a class="{{ 'on' if ep=='change_password' }}" href="{{ url_for('change_password') }}">{{ icon('user') }}My account</a></nav>
+<span class="grow"></span>
+<div class="usercard"><a class="who" href="{{ url_for('change_password') }}"><b>{{ user.email }}</b><small>{{ user.role.replace('_',' ') }}</small></a>
+<form method="post" action="{{ url_for('logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button>Log out</button></form></div>
+</aside>
+<div class="content">
+<div class="pagebar"><span class="hello">Brand Protection Portal</span><span class="sp"></span><span class="sess" title="Your session stays active while you use the portal and ends after 30 minutes of inactivity"><i></i>Session active</span></div>
+<main>
+{% with msgs = get_flashed_messages(with_categories=true) %}{% for cat,m in msgs %}<div class="flash {{ cat }}">{{ m }}</div>{% endfor %}{% endwith %}
+{% block body %}{% endblock %}</main>
+<footer>© RORGID Cyber Security · <em>Securing Kenya’s Digital Future</em></footer>
+</div></div>
+{% else %}
+<main class="auth-main">
+{% with msgs = get_flashed_messages(with_categories=true) %}{% for cat,m in msgs %}<div class="flash {{ cat }}">{{ m }}</div>{% endfor %}{% endwith %}
+{{ self.body() }}</main>
+<footer>© RORGID Cyber Security · <em>Securing Kenya’s Digital Future</em></footer>
+{% endif %}
+</body></html>

@@ -1,0 +1,12 @@
+{
+  "name": "RORGID brand protection (development stack)",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12",
+  "postCreateCommand": "pip install -r requirements.txt && playwright install --with-deps chromium",
+  "containerEnv": {
+    "HOST": "0.0.0.0", "PORT": "8000", "PLAYWRIGHT_NO_SANDBOX": "true", "COOKIE_SECURE": "true",
+    "CELERY_ALWAYS_EAGER": "true"
+  },
+  "forwardPorts": [8000],
+  "portsAttributes": { "8000": { "label": "RORGID dashboard", "onAutoForward": "openBrowser", "visibility": "private" } },
+  "postAttachCommand": "bash scripts/start_dev.sh"
+}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}{% from "_icons.html" import icon %}{% block title %}Verification{% endblock %}{% block body %}
+<h1>Company verification <span class="badge b-{{ c.status }}">{{ cstatus(c.status) }}</span></h1>
+<div class="card"><h2>{{ progress }}% complete</h2>
+<div class="progress"><i style="width:{{ progress }}%"></i></div>
+{% if c.status=='approved' %}<p class="muted">Your company is verified{% if c.verified_at %} (on {{ c.verified_at[:10] }}){% endif %}. Each file’s SHA-256 hash and key serial number are recorded below and the documents are now locked.</p>
+{% else %}<p class="muted">Upload the items below. When everything is received, your company is verified automatically and monitoring starts. Every file is hashed (SHA-256) and given a key serial number.</p>{% endif %}</div>
+
+<div class="card"><h2>KRA PIN</h2>
+{% if c.kra_pin %}<div class="kv"><span>KRA PIN: <b>{{ c.kra_pin }}</b></span>{% if c.trademark_number %}<span>Trademark no.: <b>{{ c.trademark_number }}</b></span>{% endif %}</div>{% endif %}
+{% if c.status=='pending' and user.role=='company_admin' %}
+<form method="post" action="{{ url_for('verification_details') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<div class="row"><div><label>Company KRA PIN</label><input name="kra_pin" value="{{ c.kra_pin or '' }}" placeholder="P051234567A" maxlength="11" required></div>
+<div><label>Trademark registration number (optional)</label><input name="trademark_number" value="{{ c.trademark_number or '' }}" placeholder="KIPI / TM number"></div></div>
+<p><button>Save</button></p></form>{% endif %}</div>
+
+<div class="card"><h2>Required documents</h2>
+{% for key, t in types.items() %}{% set d = docs.get(key) %}
+<div class="docrow"><span class="tick {{ 'ok' if d }}">{{ icon('check') }}</span><div>
+<h3>{{ t[0] }}</h3>
+{% if d %}<div class="kv"><span>File: <b>{{ d.filename }}</b></span><span>Key serial: <b>{{ d.serial }}</b></span><span>Uploaded: <b>{{ d.uploaded_at[:10] }}</b></span><a href="{{ url_for('document_file', doc_id=d.id) }}">View</a></div>
+<div class="kv"><span>SHA-256: <code>{{ d.sha256 }}</code></span></div>{% else %}<div class="muted" style="font-size:13px">Allowed: {{ t[1]|sort|join(', ')|upper }} · max 8 MB</div>{% endif %}
+{% if c.status=='pending' and user.role=='company_admin' %}
+<form class="upl" method="post" enctype="multipart/form-data" action="{{ url_for('verification_upload', doc_type=key) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<input type="file" name="file" accept="{% for k in t[1] %}.{{ 'jpg,.jpeg' if k=='jpg' else k }}{% if not loop.last %},{% endif %}{% endfor %}" required><button>{{ 'Replace' if d else 'Upload' }}</button></form>{% endif %}
+</div></div>{% endfor %}
+{% if user.role!='company_admin' %}<p class="muted">Only a company admin can upload documents.</p>{% endif %}</div>{% endblock %}

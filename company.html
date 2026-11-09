@@ -1,0 +1,23 @@
+{% extends "base.html" %}{% block title %}Company{% endblock %}{% block body %}
+<h1>{{ c.legal_name }} <span class="badge b-{{ c.status }}">{{ cstatus(c.status) }}</span></h1>
+<div class="card"><h2>Details</h2><p class="muted">Registration no. {{ c.registration_number }}</p>
+<form method="post" action="{{ url_for('company_details') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<div class="row"><div><label>Official email</label><input name="official_email" type="email" value="{{ c.official_email }}" required></div>
+<div><label>Phone</label><input name="phone" value="{{ c.phone or '' }}"></div>
+<div><label>Website</label><input name="website" value="{{ c.website or '' }}"></div>
+<div><label>Country</label><input name="country" value="{{ c.country or '' }}"></div></div>
+<label>Address</label><input name="address" value="{{ c.address or '' }}">
+<label><input type="checkbox" name="auto_report" {% if c.auto_report %}checked{% endif %}> Allow automatic KE-CIRT reports for confirmed watermark matches (otherwise an admin approves each one)</label>
+<p><button>Save details</button></p></form></div>
+<div class="row"><div class="card"><h2>Brands</h2>
+<table>{% for b in brands %}<tr><td><code>{{ b.brand }}</code> {% if not b.approved %}<span class="badge b-pending">awaiting verification</span>{% endif %}</td>
+<td><form class="inline" method="post" action="{{ url_for('brand_remove', item=b.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="ghost">Remove</button></form></td></tr>{% endfor %}</table>
+<form method="post" action="{{ url_for('brand_add') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label>Add brand</label><input name="brand" placeholder="yourbrand" required><p><button>Add</button></p></form></div>
+<div class="card"><h2>Your domains</h2>
+<table>{% for d in domains %}<tr><td><code>{{ d.domain }}</code> {% if not d.approved %}<span class="badge b-pending">awaiting verification</span>{% endif %}</td>
+<td><form class="inline" method="post" action="{{ url_for('domain_remove', item=d.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="ghost">Remove</button></form></td></tr>{% endfor %}</table>
+<form method="post" action="{{ url_for('domain_add') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label>Add domain</label><input name="domain" placeholder="yourbrand.co.ke" required><p><button>Add</button></p></form></div></div>
+<div class="card"><h2>Team</h2><table><tr><th>Email</th><th>Role</th></tr>{% for u in users %}<tr><td>{{ u.email }}</td><td>{{ u.role.replace('_',' ') }}</td></tr>{% endfor %}</table>
+<form method="post" action="{{ url_for('user_add') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><div class="row">
+<div><label>Email</label><input name="email" type="email" required></div><div><label>Role</label><select name="role"><option value="analyst">Analyst (review only)</option><option value="company_admin">Company admin</option></select></div>
+<div><label>Temporary password (12+)</label><input name="password" type="password" required></div></div><p><button>Add user</button></p></form></div>{% endblock %}

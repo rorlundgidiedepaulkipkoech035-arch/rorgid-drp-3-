@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% block title %}Log in{% endblock %}{% block body %}
+<div class="auth-card">
+<img class="auth-logo" src="{{ url_for('static', filename='img/logo.png') }}" alt="RORGID Cyber Security">
+<p class="tagline">Securing Kenya’s Digital Future</p>
+<h1>Brand Protection Portal</h1>
+{% if error %}<div class="flash error">{{ error }}</div>{% endif %}
+<form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<label>Email</label><input name="email" type="email" required autofocus autocomplete="username">
+<label>Password</label><input name="password" type="password" required autocomplete="current-password">
+<p><button class="full">Log in</button></p></form>
+<p class="alt" style="margin:0"><a href="{{ url_for('forgot_password') }}">Forgot password?</a></p>
+<p class="alt">New company? <a href="{{ url_for('register') }}">Register here</a></p></div>{% endblock %}

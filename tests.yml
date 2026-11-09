@@ -1,0 +1,65 @@
+name: tests
+on: [push, pull_request]
+
+jobs:
+  unit:                       # real SQLAlchemy (on SQLite) and real Celery in eager mode
+    runs-on: ubuntu-latest
+    env:
+      CELERY_ALWAYS_EAGER: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python test_stego.py
+      - run: python test_db.py
+      - run: python test_drp.py
+      - run: python test_dashboard.py
+      - run: python test_workers.py
+      - run: python demo_backend.py
+      - run: python detection_check.py
+
+  integration:                # the production stack: PostgreSQL + Redis + a real Celery worker
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: {POSTGRES_USER: rorgid, POSTGRES_PASSWORD: rorgid, POSTGRES_DB: rorgid}
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U rorgid" --health-interval 5s --health-timeout 5s --health-retries 20
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s --health-retries 20
+    env:
+      DATABASE_URL: postgresql://rorgid:rorgid@localhost:5432/rorgid
+      REDIS_URL: redis://localhost:6379/0
+      ALLOW_DB_RESET: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Tests against PostgreSQL
+        env: {CELERY_ALWAYS_EAGER: "true"}
+        run: |
+          python test_db.py
+          python test_drp.py
+          python test_dashboard.py
+          python test_workers.py
+          python demo_backend.py
+      - name: Redis + Celery worker smoke test
+        run: |
+          celery -A src.celery_app.celery worker --loglevel=info --concurrency=1 &
+          sleep 10
+          python scripts/smoke_celery.py
+      - name: Docker Compose file is valid
+        run: |
+          cp .env.example .env
+          docker compose config -q

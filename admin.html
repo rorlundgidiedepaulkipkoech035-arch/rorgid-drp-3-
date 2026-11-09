@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% block title %}Companies{% endblock %}{% block body %}
+<h1>Companies</h1>
+{% for c, conflicts, users, docs in rows %}<div class="card">
+<h2>{{ c.legal_name }} <span class="badge b-{{ c.status }}">{{ cstatus(c.status) }}</span></h2>
+<table><tr><th>Registration no.</th><td>{{ c.registration_number }}</td></tr><tr><th>KRA PIN</th><td>{{ c.kra_pin or '-' }}{% if c.trademark_number %} · TM {{ c.trademark_number }}{% endif %}</td></tr>
+<tr><th>Official email</th><td>{{ c.official_email }}</td></tr><tr><th>Website / phone</th><td>{{ c.website or '-' }} / {{ c.phone or '-' }}</td></tr>
+<tr><th>Address</th><td>{{ c.address or '-' }}, {{ c.country or '' }}</td></tr>
+<tr><th>Users</th><td>{% for u in users %}{{ u.email }} ({{ u.role.replace('_',' ') }}){% if not loop.last %}, {% endif %}{% endfor %}</td></tr>
+<tr><th>Documents</th><td>{% if docs %}{% for d in docs %}<div>{{ d.doc_type.replace('_',' ') }} · <code>{{ d.serial }}</code> · <code>{{ d.sha256[:16] }}…</code> · <a href="{{ url_for('document_file', doc_id=d.id) }}">view</a></div>{% endfor %}{% else %}none{% endif %}</td></tr>
+<tr><th>Findings / pending items</th><td>{{ c.findings }} / {{ c.pending_brands }} brand(s), {{ c.pending_domains }} domain(s)</td></tr></table>
+{% if conflicts %}<div class="flash error" style="margin-top:12px">Brand also claimed by another company: {% for b in conflicts %}{{ b.brand }} ({{ b.legal_name }}){% if not loop.last %}, {% endif %}{% endfor %}. Check ownership.</div>{% endif %}
+{% for act,label,cls in [('approve','Verify manually',''),('approve-changes','Approve pending changes','ghost'),('suspend','Suspend','danger')] %}
+<form class="inline" method="post" action="{{ url_for('admin_action', cid=c.id, action=act) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="{{ cls }}">{{ label }}</button></form>{% endfor %}
+</div>{% else %}<p class="muted">No companies registered yet.</p>{% endfor %}{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% block title %}{{ f.domain }}{% endblock %}{% block body %}
+<p><a href="{{ url_for('findings_list') }}">&larr; Back to findings</a></p>
+<div class="card"><h1><code>{{ f.domain }}</code> <span class="badge b-{{ f.status }}">{{ f.status.replace('_',' ') }}</span></h1>
+<table><tr><th>Why flagged</th><td>{{ f.reason }}</td></tr>
+<tr><th>Detected</th><td>{{ f.detected_at }}</td></tr>
+<tr><th>Evidence SHA-256</th><td><code>{{ f.sha256 or '-' }}</code></td></tr>
+<tr><th>Watermark serial</th><td>{{ f.serial or 'none detected' }}</td></tr></table>
+<h2 style="margin-top:16px">Evidence screenshot</h2>
+<p><img src="{{ url_for('screenshot', fid=f.id) }}" alt="Screenshot of the suspected site" style="max-width:100%;border:1px solid var(--line)"></p>
+<h2>Actions</h2>
+{% for act,label,cls in [('confirm','Confirm infringement',''),('dismiss','Dismiss (false positive)','ghost'),('reopen','Reopen','ghost')] %}
+<form class="inline" method="post" action="{{ url_for('finding_action', fid=f.id, action=act) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="{{ cls }}">{{ label }}</button></form>{% endfor %}
+{% if user.role=='company_admin' and f.status=='confirmed' %}
+<form method="post" action="{{ url_for('finding_action', fid=f.id, action='report') }}" style="margin-top:12px"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label><input type="checkbox" required> I have reviewed the evidence and authorise a takedown report to KE-CIRT/CC</label><button class="danger">Approve report to KE-CIRT/CC</button></form>{% endif %}
+</div>{% endblock %}

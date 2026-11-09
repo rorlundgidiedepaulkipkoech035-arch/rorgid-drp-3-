@@ -1,0 +1,29 @@
+{% extends "base.html" %}{% from "_icons.html" import icon %}{% block title %}Overview{% endblock %}{% block body %}
+<h1>{{ company.legal_name }} <span class="badge b-{{ company.status }}">{{ cstatus(company.status) }}</span></h1>
+{% if company.status=='pending' %}<div class="flash">Your company is awaiting verification. A company admin must upload the required documents on the Verification page. Monitoring starts once verified.</div>
+{% elif company.status=='suspended' %}<div class="flash error">This account is suspended. Contact support.</div>{% endif %}
+<div class="kpis">
+<a class="kpi" href="{{ url_for('findings_list') }}"><span class="chip c-blue">{{ icon('list') }}</span><div><b>{{ total }}</b><span>Total findings</span></div></a>
+<a class="kpi" href="{{ url_for('findings_list', status='pending_review') }}"><span class="chip c-amber">{{ icon('alert') }}</span><div><b>{{ counts.get('pending_review',0) }}</b><span>Needs review</span></div></a>
+<a class="kpi" href="{{ url_for('findings_list', status='confirmed') }}"><span class="chip c-red">{{ icon('shield') }}</span><div><b>{{ counts.get('confirmed',0) + counts.get('approved_for_report',0) }}</b><span>Confirmed</span></div></a>
+<a class="kpi" href="{{ url_for('findings_list', status='reported') }}"><span class="chip c-green">{{ icon('send') }}</span><div><b>{{ counts.get('reported',0) }}</b><span>Reported to KE-CIRT</span></div></a>
+</div>
+<div class="grid3">
+<div class="card"><h2>Findings by status</h2>
+{% if total %}<div class="donut-wrap"><svg class="donut" viewBox="0 0 42 42" role="img" aria-label="Findings by status"><circle cx="21" cy="21" r="15.9155" fill="none" stroke="#eef2f8" stroke-width="5.5"/>
+{% for s in segs %}<circle cx="21" cy="21" r="15.9155" fill="none" stroke="{{ s.color }}" stroke-width="5.5" stroke-dasharray="{{ s.pct }} {{ 100 - s.pct }}" stroke-dashoffset="{{ 25 - s.offset }}"/>{% endfor %}
+<text x="21" y="22.5" text-anchor="middle" font-size="7" font-weight="700" fill="#0b1f3f">{{ total }}</text></svg>
+<div class="legend">{% for s in segs %}<div><i style="background:{{ s.color }}"></i>{{ s.status.replace('_',' ') }}<b>{{ s.n }}</b></div>{% endfor %}</div></div>
+{% else %}<p class="empty">No findings yet.</p>{% endif %}</div>
+<div class="card"><h2>Detections, last 14 days</h2>
+<div class="bars">{% for b in bars %}<div class="bar" title="{{ b.label }}: {{ b.n }}"><em>{{ b.n if b.n else '' }}</em><i style="height:{{ b.h }}%"></i><span>{{ b.label[3:] }}</span></div>{% endfor %}</div></div>
+</div>
+<div class="row">
+<div class="card"><h2>Latest findings <a class="btn ghost" style="margin:0;padding:6px 12px" href="{{ url_for('findings_list') }}">View all</a></h2>
+{% if recent %}<table>{% for f in recent %}<tr><td><a href="{{ url_for('finding', fid=f.id) }}"><code>{{ f.domain }}</code></a><div class="muted" style="font-size:12px">{{ f.detected_at }}</div></td><td style="text-align:right"><span class="badge b-{{ f.status }}">{{ f.status.replace('_',' ') }}</span></td></tr>{% endfor %}</table>
+{% else %}<p class="empty">Nothing detected yet.</p>{% endif %}</div>
+<div class="card"><h2>Verification <a class="btn ghost" style="margin:0;padding:6px 12px" href="{{ url_for('verification') }}">Open</a></h2>
+{% if company.status=='approved' %}<p><span class="badge b-approved">verified</span> {% if company.verified_at %}<span class="muted">on {{ company.verified_at[:10] }}</span>{% endif %}</p>{% endif %}
+{% if docs %}<table>{% for d in docs %}<tr><td>{{ d.doc_type.replace('_',' ') }}</td><td><code>{{ d.serial }}</code></td></tr>{% endfor %}</table>
+{% else %}<p class="empty">No documents on file yet.</p>{% endif %}</div>
+</div>{% endblock %}

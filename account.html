@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block title %}Account{% endblock %}{% block body %}
+<h1>My account</h1>
+<div class="card" style="max-width:520px"><h2>Change password</h2>
+<p class="muted">Signed in as {{ user.email }} ({{ user.role.replace('_',' ') }}). Each login has its own password.</p>
+<form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<label>Current password</label><input name="current" type="password" required autocomplete="current-password">
+<label>New password</label><input name="new" type="password" required autocomplete="new-password"><div class="hintline">{{ PASSWORD_HINT }}</div>
+<label>Confirm new password</label><input name="new2" type="password" required autocomplete="new-password">
+<p><button>Update password</button></p></form></div>{% endblock %}

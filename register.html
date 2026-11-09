@@ -1,0 +1,22 @@
+{% extends "base.html" %}{% block title %}Register company{% endblock %}{% block body %}
+<div class="auth-card wide"><img class="auth-logo" src="{{ url_for('static', filename='img/logo.png') }}" alt="RORGID Cyber Security">
+<p class="tagline">Securing Kenya’s Digital Future</p><h1>Register your company</h1>
+<p class="muted" style="text-align:center">Use your official company details. After registering you will upload your KRA PIN and trademark documents to get verified.</p>
+<form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<h2>Company details</h2>
+<div class="row"><div><label>Legal name</label><input name="legal_name" value="{{ f.legal_name }}" required></div>
+<div><label>Registration number</label><input name="registration_number" value="{{ f.registration_number }}" required></div>
+<div><label>Official company email</label><input name="official_email" type="email" value="{{ f.official_email }}" required></div>
+<div><label>Phone</label><input name="phone" value="{{ f.phone }}"></div>
+<div><label>Website</label><input name="website" value="{{ f.website }}"></div>
+<div><label>Country</label><input name="country" value="{{ f.country }}"></div></div>
+<label>Physical address</label><input name="address" value="{{ f.address }}">
+<h2 style="margin-top:18px">What to protect</h2>
+<label>Brand names (comma separated, no TLD), e.g. yourbrand</label><input name="brands" value="{{ f.brands }}" required>
+<label>Domains you own (comma separated), e.g. yourbrand.com, yourbrand.co.ke</label><input name="domains" value="{{ f.domains }}" required>
+<h2 style="margin-top:18px">Admin account</h2>
+<p class="muted">The email must be on one of your company domains.</p>
+<div class="row"><div><label>Admin email</label><input name="admin_email" type="email" value="{{ f.admin_email }}" required></div><div></div>
+<div><label>Password</label><input name="password" type="password" required><div class="hintline">{{ PASSWORD_HINT }}</div></div>
+<div><label>Confirm password</label><input name="password2" type="password" required></div></div>
+<p><button>Submit registration</button> <a class="btn ghost" style="background:#fff;color:#12315f;border:1px solid #cfd8e6" href="{{ url_for('login') }}">Back to log in</a></p></form></div>{% endblock %}

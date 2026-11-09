@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block title %}Reset password{% endblock %}{% block body %}
+<div class="auth-card">
+<img class="auth-logo" src="{{ url_for('static', filename='img/logo.png') }}" alt="RORGID Cyber Security">
+<h1>Reset your password</h1>
+<form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<label>Registered email</label><input name="email" type="email" value="{{ email }}" required>
+<label>6-digit code from your email</label><input name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" value="{{ code or '' }}" required autocomplete="one-time-code">
+<label>New password</label><input name="new" type="password" required autocomplete="new-password"><div class="hintline">{{ PASSWORD_HINT }}</div>
+<label>Confirm new password</label><input name="new2" type="password" required autocomplete="new-password">
+<p><button class="full">Set new password</button></p></form>
+<p class="alt"><a href="{{ url_for('forgot_password') }}">Send a new code</a> · <a href="{{ url_for('login') }}">Back to log in</a></p></div>{% endblock %}

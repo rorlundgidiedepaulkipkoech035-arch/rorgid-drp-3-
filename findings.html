@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block title %}Findings{% endblock %}{% block body %}
+<h1>Findings</h1>
+<div class="card">
+<form class="search" method="get"><input name="q" value="{{ q }}" placeholder="Search domain or reason">{% if status %}<input type="hidden" name="status" value="{{ status }}">{% endif %}<button>Search</button></form>
+<div class="chips"><a class="chip-f {{ '' if status else 'on' }}" href="{{ url_for('findings_list', q=q or None) }}">All</a>
+{% for s in filters %}<a class="chip-f {{ 'on' if status==s }}" href="{{ url_for('findings_list', status=s, q=q or None) }}">{{ s.replace('_',' ') }}<b>{{ counts.get(s,0) }}</b></a>{% endfor %}</div>
+{% if findings %}<table><tr><th>Domain</th><th>Why flagged</th><th>Serial</th><th>Status</th><th>Detected</th></tr>
+{% for f in findings %}<tr><td><a href="{{ url_for('finding', fid=f.id) }}"><code>{{ f.domain }}</code></a></td><td>{{ f.reason }}</td><td>{{ f.serial or '-' }}</td><td><span class="badge b-{{ f.status }}">{{ f.status.replace('_',' ') }}</span></td><td class="muted">{{ f.detected_at }}</td></tr>{% endfor %}</table>
+{% else %}<p class="empty">No findings match.</p>{% endif %}</div>{% endblock %}

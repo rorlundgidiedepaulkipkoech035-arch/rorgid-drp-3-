@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block title %}Forgot password{% endblock %}{% block body %}
+<div class="auth-card">
+<img class="auth-logo" src="{{ url_for('static', filename='img/logo.png') }}" alt="RORGID Cyber Security">
+<h1>Forgot your password?</h1>
+<p class="muted" style="text-align:center">Enter the email you registered with. We will send a 6-digit code to it.</p>
+<form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<label>Registered email</label><input name="email" type="email" required autofocus>
+<p><button class="full">Send code</button></p></form>
+<p class="alt"><a href="{{ url_for('login') }}">Back to log in</a></p></div>{% endblock %}
